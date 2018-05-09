@@ -1,0 +1,9 @@
+.cache
+.eggs
+**/*egg-info*
+/vendor
+/data
+.env
+**/*.ipynb
+.pytest_cache
+__pycache__
