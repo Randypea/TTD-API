@@ -98,4 +98,4 @@ def test_pagination(client):
 
     # we know there is at least one
     # and we hope we don't end up in an infinite cycle
-    assert len(results) > 0
+    assert len(list(results)) > 0

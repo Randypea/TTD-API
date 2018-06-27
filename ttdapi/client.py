@@ -196,7 +196,7 @@ class TTDClient(BaseTTDClient):
         """
 
         yield from self.post_paginated("/sitelist/query/advertiser",
-                                       json=json_payload,
+                                       json_payload=json_payload,
                                        **paging_params)
 
     def get_campaign_template(self, campaign_id):
@@ -204,4 +204,4 @@ class TTDClient(BaseTTDClient):
 
     def get_delta_sitelists(self, data):
         "https://apisb.thetradedesk.com/v3/doc/api/post-delta-sitelist-query-advertiser"
-        yield from self.post_paginated("/delta/sitelist/query/advertiser", json=data)
+        yield from self.post_paginated("/delta/sitelist/query/advertiser", json_payload=data)
