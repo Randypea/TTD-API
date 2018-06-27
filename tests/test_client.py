@@ -8,8 +8,8 @@ import pytest
 from ttdapi.client import BaseTTDClient
 import ttdapi.exceptions
 
-LOGIN = os.environ['TDD_USERNAME']
-PASSWORD = os.environ['TDD_PASSWORD']
+LOGIN = os.environ['TTD_USERNAME']
+PASSWORD = os.environ['TTD_PASSWORD']
 
 @pytest.fixture
 def fake_client():
@@ -82,3 +82,20 @@ def test_making_client_get_request_succeeds(client):
     endpoint = "category/industrycategories"
     data = client.get(endpoint)
     assert isinstance(data, dict)
+
+
+def test_pagination(client):
+    results = client.post_paginated(
+        "advertiser/query/partner",
+        json_payload={
+            "Availabilities": ['Available', 'Archived'],
+            'PartnerId': '304zmgy',
+        },
+        page_size= 1,
+        page_start_index= 0
+    )
+
+
+    # we know there is at least one
+    # and we hope we don't end up in an infinite cycle
+    assert len(results) > 0

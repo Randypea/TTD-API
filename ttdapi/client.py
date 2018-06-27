@@ -117,6 +117,26 @@ class BaseTTDClient(requests.Session):
         """
         return self._request("GET", self._build_url(endpoint), *args, **kwargs).json()
 
+    def post_paginated(self, endpoint, json_payload,  page_start_index=0, page_size=100, **kwargs):
+        """Make a POST request and paginate to the end
+
+        Supply the json payload (as a dict) in the "json" argument
+        Pagination starts at 0 with page size of 100 if not specified in the json argument
+        """
+        paging_params = {
+            "PageStartIndex": page_start_index,
+            "PageSize": page_size
+        }
+        json_payload.update(paging_params)
+        while True:
+            resp = self.post(endpoint, json=json_payload, **kwargs)
+            yield resp
+            if len(resp['Result']) == 0:
+                break
+            else:
+                paging_params['PageStartIndex'] += 1
+                json_payload.update(paging_params)
+
 
     def post(self, endpoint, *args, **kwargs):
         """Make an authenticated POST request against the API endpoint
@@ -162,3 +182,26 @@ class TTDClient(BaseTTDClient):
 
     def get_sitelist(self, id_):
         return self.get('/sitelist/{}'.format(id_))
+
+    def get_all_sitelists(self, json_payload, **paging_params):
+        """Get all sitelists for given advertiser
+
+        Args:
+            json_data: all parameters you wish to pass.
+                If you do not specify the pagination parameters, it starts from
+                zero with 100 items per page
+                For example {"AdvertiserId": "abcderf"} would do just fine
+            paging_params any of "page_start_index", "page_size"
+
+        """
+
+        yield from self.post_paginated("/sitelist/query/advertiser",
+                                       json=json_payload,
+                                       **paging_params)
+
+    def get_campaign_template(self, campaign_id):
+        return self.get("campaign/template/{}".format(campaign_id))
+
+    def get_delta_sitelists(self, data):
+        "https://apisb.thetradedesk.com/v3/doc/api/post-delta-sitelist-query-advertiser"
+        yield from self.post_paginated("/delta/sitelist/query/advertiser", json=data)
