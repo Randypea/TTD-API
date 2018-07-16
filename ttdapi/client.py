@@ -70,9 +70,9 @@ class BaseTTDClient(requests.Session):
             resp.raise_for_status()
         except requests.HTTPError as err:
             if err.response.status_code in (401, 403):
-                raise TTDApiPermissionsError("{}\n{}".format(err, err.response.text))
+                raise TTDApiPermissionsError("{}\n{}".format(err, err.response.text), response=err.response)
             else:
-                raise TTDApiError(err.response.text)
+                raise TTDApiError(err.response.text, response=err.response)
 
         self.token = resp.json()["Token"]
 
@@ -98,11 +98,11 @@ class BaseTTDClient(requests.Session):
                     resp2 = self.request(method, url, *args, **kwargs)
                     resp2.raise_for_status()
                 except requests.HTTPError as err:
-                    raise TTDApiError("{}\n{}".format(err, err.response.text))
+                    raise TTDApiError("{}\n{}".format(err, err.response.text), response=err.response)
                 else:
                     return resp2
             else:
-                raise TTDApiError("{}\n{}".format(err, err.response.text))
+                raise TTDApiError("{}\n{}".format(err, err.response.text), response=err.response)
         else:
             return resp
 
