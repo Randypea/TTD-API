@@ -131,10 +131,10 @@ class BaseTTDClient(requests.Session):
         while True:
             resp = self.post(endpoint, json=json_payload, **kwargs)
             yield resp
-            if len(resp['Result']) == 0:
+            if len(resp['Result']) < page_size:
                 break
             else:
-                paging_params['PageStartIndex'] += 1
+                paging_params['PageStartIndex'] += page_size
                 json_payload.update(paging_params)
 
 
