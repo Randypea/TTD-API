@@ -117,11 +117,18 @@ class BaseTTDClient(requests.Session):
         """
         return self._request("GET", self._build_url(endpoint), *args, **kwargs).json()
 
-    def post_paginated(self, endpoint, json_payload,  page_start_index=0, page_size=100, **kwargs):
+    def post_paginated(self,
+                       endpoint,
+                       json_payload,
+                       page_start_index=0,
+                       page_size=100,
+                       stream_items=False,
+                       **kwargs):
         """Make a POST request and paginate to the end
 
         Supply the json payload (as a dict) in the "json" argument
         Pagination starts at 0 with page size of 100 if not specified in the json argument
+
         """
         paging_params = {
             "PageStartIndex": page_start_index,
@@ -130,7 +137,12 @@ class BaseTTDClient(requests.Session):
         json_payload.update(paging_params)
         while True:
             resp = self.post(endpoint, json=json_payload, **kwargs)
-            yield resp
+            # for backward compatibility
+            if stream_items:
+                for item in resp['Result']:
+                    yield item
+            else:
+                yield resp
             if len(resp['Result']) < page_size:
                 break
             else:
@@ -197,7 +209,15 @@ class TTDClient(BaseTTDClient):
 
         yield from self.post_paginated("/sitelist/query/advertiser",
                                        json_payload=json_payload,
+                                        stream_items=True,
                                        **paging_params)
+
+    def get_all_advertisers(self, json_payload, **paging_params):
+        yield from self.post_paginated("/advertiser/query/partner",
+                                        json_payload=json_payload,
+                                        stream_items=True,
+                                        **paging_params)
+
 
     def get_campaign_template(self, campaign_id):
         return self.get("campaign/template/{}".format(campaign_id))
