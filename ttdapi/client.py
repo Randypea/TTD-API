@@ -90,7 +90,7 @@ class BaseTTDClient(requests.Session):
         try:
             resp.raise_for_status()
         except requests.HTTPError as err:
-            if err.response.status_code == 403:
+            if err.response.status_code == 401:
                 # token expired
                 logger.debug("Token expired or invalid, trying again")
                 self._refresh_token()
