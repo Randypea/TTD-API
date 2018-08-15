@@ -85,12 +85,15 @@ class BaseTTDClient(requests.Session):
             requests.Response object
         """
 
+        # this gets the token if one doesn't already exist
+        # it's smelly but should do fine for now
+
         # auth headers are set when requesting token
         resp = self.request(method, url, *args, **kwargs)
         try:
             resp.raise_for_status()
         except requests.HTTPError as err:
-            if err.response.status_code == 401:
+            if err.response.status_code in (401, 403):
                 # token expired
                 logger.debug("Token expired or invalid, trying again")
                 self._refresh_token()
