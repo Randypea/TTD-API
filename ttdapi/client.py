@@ -288,6 +288,7 @@ class TTDClient(BaseTTDClient):
             yield next(campaigns), new_tracking_version
         except StopIteration:
             yield None, new_tracking_version
+        else:
             for campaign in campaigns:
                 yield campaign, new_tracking_version
 
@@ -340,6 +341,7 @@ class TTDClient(BaseTTDClient):
             yield next(adgroups), new_tracking_version
         except StopIteration:
             yield None, new_tracking_version
+        else:
             for adgroup in adgroups:
                 yield adgroup, new_tracking_version
 
