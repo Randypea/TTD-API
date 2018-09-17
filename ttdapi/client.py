@@ -281,8 +281,15 @@ class TTDClient(BaseTTDClient):
             advertiser_id,
             last_change_tracking_version)
 
-        for campaign in campaigns:
-            yield campaign, new_tracking_version
+        # if there are no items to be iterated over
+        # we still need to yield the tracking version
+        # because it must be cached to statefile
+        try:
+            yield next(campaigns), new_tracking_version
+        except StopIteration:
+            yield None, new_tracking_version
+            for campaign in campaigns:
+                yield campaign, new_tracking_version
 
         while more_data:
             # a pseudo recursive call
@@ -326,8 +333,15 @@ class TTDClient(BaseTTDClient):
             advertiser_id,
             last_change_tracking_version)
 
-        for adgroup in adgroups:
-            yield adgroup, new_tracking_version
+        # if there are no items to be iterated over
+        # we still need to yield the tracking version
+        # because it must be cached to statefile
+        try:
+            yield next(adgroups), new_tracking_version
+        except StopIteration:
+            yield None, new_tracking_version
+            for adgroup in adgroups:
+                yield adgroup, new_tracking_version
 
         while more_data:
             # a pseudo recursive call
