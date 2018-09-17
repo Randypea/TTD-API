@@ -1,5 +1,7 @@
 import requests
+import re
 from urllib.parse import urljoin
+from typing import Iterator, Tuple, Dict, Optional
 import logging
 
 from ttdapi.exceptions import TTDApiPermissionsError, TTDApiError
@@ -228,3 +230,114 @@ class TTDClient(BaseTTDClient):
     def get_delta_sitelists(self, data):
         "https://apisb.thetradedesk.com/v3/doc/api/post-delta-sitelist-query-advertiser"
         yield from self.post_paginated("/delta/sitelist/query/advertiser", json_payload=data)
+
+    def _post_delta_endpoint(
+            self,
+            endpoint,
+            json_payload,
+            entity: str
+    ) -> Tuple[Iterator[dict],
+               int,
+               bool]:
+        """Make a request to get data from delta endpoint
+
+
+        Returns:
+            a tuple,
+            0 - the Iterator[dict] are the requested items
+            1 - the int is new lastChangeTrackingVersion
+            2 - bool if there are more items to download, just make a new request with [1]
+        """
+
+        resp = self.post(endpoint, json=json_payload)
+
+        return iter(resp[entity]), resp['LastChangeTrackingVersion'], resp['More{entity}Available'.format(entity=entity)]
+
+    def _fetch_one_delta_campaign_for_advertiser(
+            self,
+            advertiser_id,
+            last_change_tracking_version):
+        '''Just one "page" '''
+
+        payload = {
+            "AdvertiserId": advertiser_id,
+            "ReturnEntireCampaign": True,
+            "LastChangeTrackingVersion": last_change_tracking_version
+
+        }
+
+        return self._post_delta_endpoint(
+            "delta/campaign/query/advertiser",
+            json_payload=payload,
+            entity='Campaigns')
+
+    def fetch_all_delta_campaigns_for_advertiser(
+            self,
+            advertiser_id,
+            last_change_tracking_version: Optional[int]=None):
+        '''Handle "pagination"'''
+
+        campaigns, new_tracking_version, more_data = self._fetch_one_delta_campaign_for_advertiser(
+            advertiser_id,
+            last_change_tracking_version)
+
+        for campaign in campaigns:
+            yield campaign, new_tracking_version
+
+        while more_data:
+            # a pseudo recursive call
+            # because now one can do
+            # for campaign, tracking_version in fetch_all_delta_campaigns_for_advertiser(...):
+            #
+            #to iterate smoothly over the results
+            campaigns, new_tracking_version, more_data = self._fetch_one_delta_campaign_for_advertiser(
+                advertiser_id,
+                new_tracking_version)
+
+            for campaign in campaigns:
+                yield campaign, new_tracking_version
+
+
+    def _fetch_one_delta_adgroup_for_advertiser(
+            self,
+            advertiser_id,
+            last_change_tracking_version):
+        '''Just one "page" '''
+
+        payload = {
+            "AdvertiserId": advertiser_id,
+            "ReturnEntireAdgroup": True,
+            "LastChangeTrackingVersion": last_change_tracking_version
+
+        }
+
+        return self._post_delta_endpoint(
+            "delta/adgroup/query/advertiser",
+            json_payload=payload,
+            entity='AdGroups')
+
+    def fetch_all_delta_adgroups_for_advertiser(
+            self,
+            advertiser_id,
+            last_change_tracking_version: Optional[int]=None):
+        """Handle 'pagination' """
+
+        adgroups, new_tracking_version, more_data = self._fetch_one_delta_adgroup_for_advertiser(
+            advertiser_id,
+            last_change_tracking_version)
+
+        for adgroup in adgroups:
+            yield adgroup, new_tracking_version
+
+        while more_data:
+            # a pseudo recursive call
+            # because now one can do
+            # for adgroup, tracking_version in fetch_all_delta_adgroups_for_advertiser(...):
+            #
+            #to iterate smoothly over the results
+            adgroups, new_tracking_version, more_data = self._fetch_one_delta_adgroup_for_advertiser(
+                advertiser_id,
+                new_tracking_version)
+
+            for adgroup in adgroups:
+                yield adgroup, new_tracking_version

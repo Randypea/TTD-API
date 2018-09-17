@@ -43,6 +43,22 @@ with client:
     # client.post_paginated(endpoint, json_payload, page_start_index=1, page_size=42)
 ```
 
+## Delta endpoints
+hardcoded are adgroups and campaigns
+
+
+```python
+
+delta_adgroup_iterator = client.fetch_all_delta_adgroups_for_advertiser(advertiser_id='abc1234', last_change_tracking_version=None):
+
+for adgroup, tracking_version in delta_adgroup_iterator:
+    print(adgroup, tracking_version)
+    
+```
+Under the hood this handles pagination since one call to delta-endpoint not necessarily returns all data but multplie calls might be required (utilizing the newly returned tracking versions)
+
+There is equivalent `client.fetch_all_delta_campaigns_for_advertiser` function for campaigns
+
 ## Extending
 if the endpoint you need is not available make an issue or  or implement a method directly in `ttdapi.client.TTDClient` and make PR
 
