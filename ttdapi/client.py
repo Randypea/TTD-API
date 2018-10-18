@@ -189,10 +189,10 @@ class TTDClient(BaseTTDClient):
         return self.post('/campaign', json=data)
 
     def create_adgroup(self, data):
-        return self.post('/adgroup')
+        return self.post('/adgroup', json=data)
 
     def update_adgroup(self, data):
-        return self.post('/adgroup')
+        return self.post('/adgroup', json=data)
 
     def update_campaign(self, data):
         return self.put('/campaign', json=data)
