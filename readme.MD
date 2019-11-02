@@ -1,5 +1,6 @@
 # About
-A very thin wrapper around the The Trade Desk API.
+A very thin wrapper around the The Trade Desk API.  
+I am using this to test what can be done.  RJP
 
 - leverages `requests.Session`
   - reuses TCP connection
